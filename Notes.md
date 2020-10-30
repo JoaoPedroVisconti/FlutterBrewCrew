@@ -438,3 +438,74 @@ class _SignInState extends State<SignIn> {
 >   runApp(MyApp());
 > }
 > ```
+
+
+# Custom User Model:
+
+Cleaning up the data that comes back from the request of the user (User Firebase). Just need the 'uid' property, User Id
+
+- Create a new TheUser object, custom with the needed information, and turn this Firebase User object into it.
+
+- Need to create a new TheUser class to base this user models on
+
+- Create a new folder call 'models'. Create a user model, file call user.dart
+
+  - This are going to be a simple call TheUser, that specify what properties the object user has.
+
+  - Has also a constructor to set the properties to some value. (Named Parameters)
+
+  ```dart
+    class TheUser {
+    final String uid;
+
+    TheUser({this.uid});
+  }
+  ```
+
+- Inside the auth.dart file, we need to set the Firebase user to be the new TheUser class
+
+  - Create a new function that create a TheUser object based on a Firebase User.
+
+  ```dart
+  // Create an User based on Firebase User
+  TheUser _userFromFirebaseUser(User user) {
+    return user != null ? TheUser(uid: user.uid) : null;
+  }
+  ```
+
+- Call the function from where returns a Firebase User
+
+```dart
+// Method to Sign In Anony
+Future signInAnon() async {
+  try {
+    UserCredential result = await _auth.signInAnonymously();
+    User user = result.user;
+    return _userFromFirebaseUser(user);
+  } catch (err) {
+    print(err.toString());
+    return null;
+  }
+}
+```
+
+- Now we can print out inside the sign_in.dart file.
+
+```dart
+onPressed: () async {
+  dynamic result = await _auth.signInAnon();
+  if (result == null) {
+    print('Error signing in');
+  } else {
+    print('User sign in');
+    print(result.uid);
+  }
+},
+```
+
+# Streams:
+
+Have to listen for when get the user back. To do this we are going to use a Stream. This occurs inside the **Wrapping** widget. (Show the **Authenticate** widget or the **Home**)
+
+- Set up a Stream inside the auth.dart file
+
