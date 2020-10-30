@@ -239,3 +239,202 @@ Create a new folder inside the 'lib' folder to hold all the services, call 'serv
   ```dart
   import 'package:firebase/firebase.dart';
   ```
+
+  - Create a Class **AuthService**: inside this it going to be all the different methods that are going to interact with Firebase Auth.
+
+  ```dart
+  import 'package:firebase/firebase.dart';
+
+  class AuthService {
+
+    // Method to Sign In Anony
+
+    // Method to Sign In Email and Password
+  
+    // Method to Register Email and Password
+
+    // Method to Sign Out
+    
+  }
+  ```
+
+  - First create a instance of the Firebase Authentication, and this object going to allow to communicate with Firebase Auth.
+
+    - Create a new *final* property, this means that it is not going to change in the future.
+
+    - The type is *FirebaseAuth* and with a '_' before the name, this means that this property is private, only can be use in this particular file (auth.dart)
+
+    - This property are going to be equal to an instance Firebase
+
+  ```dart
+  class AuthService {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+    // Method to Sign In Anony
+
+    // Method to Sign In Email and Password
+
+    // Method to Register Email and Password
+
+    // Method to Sign Out
+
+  }
+  ```
+
+- Starting with the Sign In Anonymously
+  
+  - This is going to be a Asynchronous task, and returns a Future (Like Promise in JavaScript)
+
+  - This can give an error, so wrap in a Try and Catch block
+
+```dart
+class AuthService {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  // Method to Sign In Anony
+  Future signInAnon() async {
+    try {} catch (err) {}
+  }
+
+  // Method to Sign In Email and Password
+
+  // Method to Register Email and Password
+
+  // Method to Sign Out
+
+}
+```
+  
+  - Want to get some kind of authenticated result from Firebase by making a request.
+  
+  - The way to make this request is via the *_auth* object
+
+    - Need to await this request because it can take some time, before assign the result to some variable.
+
+    - Use a method from the object *_auth* (That is a FIrebase object) call *signInAnonymously()*
+
+    - This return a type of object call 'UserCredential'
+
+    ```dart
+    Future signInAnon() async {
+      try {
+        UserCredential result = await _auth.signInAnonymously();
+      } catch (err) {}
+    }
+    ```
+
+    - On this *result* object has a *User* type object that represent that user.
+
+    - And it going to return that user.
+
+    - If get some error lets print it and return null.
+
+    ```dart
+    // Method to Sign In Anony
+    Future signInAnon() async {
+      try {
+        UserCredential result = await _auth.signInAnonymously();
+        User user = result.user;
+        return user;
+      } catch (err) {
+        print(err.toString());
+        return null;
+      }
+    }
+    ```
+
+
+# Anonymous Sign In:
+
+Do the sign in anonymously from a **SignIn** widget. 
+
+- Create the **SignIn** widget to use the Auth service inside it. Create inside the 'authenticate' folder a file call 'sign_in.dart'
+
+  - First of all import material
+
+- This are going to be a **StatefulWidget** because in some time the state change.
+
+  - This widget is going to return a **Scaffold**
+
+  1. backgroundColor
+  2. appBar: AppBar()
+    1. backgroundColor
+    2. elevation
+    3. title
+  3. body: Container()
+    1. padding
+    2. child: RaisedButton()
+      1. child: Text()
+      2. onPress: async function
+    
+```dart
+import 'package:flutter/material.dart';
+
+class SignIn extends StatefulWidget {
+  @override
+  _SignInState createState() => _SignInState();
+}
+
+class _SignInState extends State<SignIn> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.brown[100],
+      appBar: AppBar(
+        backgroundColor: Colors.brown[400],
+        elevation: 0,
+        title: Text('Sign In Brew Crew'),
+      ),
+      body: Container(
+        padding: EdgeInsets.symmetric(vertical: 20, horizontal: 50),
+        child: RaisedButton(
+          child: Text('Sign In Anon'),
+          onPressed: () async {},
+        ),
+      ),
+    );
+  }
+}
+```
+
+- Now we can return the **Authenticate** widget inside the **Wrapper** widget and return the **SignIn** widget in the **Authenticate** widget.
+
+- The function of the button inside the **SignIn** widget has to access the method *signInAnon* inside the **AuthService** class. Have to create an instance to have access to this method.
+
+  - Create a final variable with type 'AuthService' name of the class to hold the instance of this class. Can call whatever, but call it '_auth'. This are going to be equal to the instance.
+
+  - The *signInAnon()* method can be used inside the *onPressed* property of the button. But has to await because of the request.
+
+    - Store that in a dynamic variable (because could be null or could be a Firebase user)
+
+  ```dart
+  onPressed: () async {
+    dynamic result = await _auth.signInAnon();
+    if (result == null) {
+      print('Error signing in');
+    } else {
+      print('User sign in');
+      print(result);
+    }
+  },
+  ```
+
+> The code has an error: No Firebase App '[DEFAULT]' has been created - call Firebase.initializeApp() 
+>
+> Solution:
+>
+> 1. Add to pubspec.yaml
+>
+> firebase_core: ^0.5.0
+>
+> 2. Add to main.dart
+>
+> ```dart
+> import 'package:firebase_core/firebase_core.dart';
+>
+> void main() async {
+>   WidgetsFlutterBinding.ensureInitialized();
+>   await Firebase.initializeApp();
+>   runApp(MyApp());
+> }
+> ```
