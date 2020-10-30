@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "61051545646",
+    "firebase_url": "https://brewcrew-b5380.firebaseio.com",
+    "project_id": "brewcrew-b5380",
+    "storage_bucket": "brewcrew-b5380.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:61051545646:android:84be42fc4f8885c52f17bf",
+        "android_client_info": {
+          "package_name": "com.viscfirstapp.brew_crew"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "61051545646-kjmaqq54t3qalj5347laubtlr6mfbto1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBF_q9p0HzK8ZdsSbNsetRYqVbbdGLkZls"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "61051545646-kjmaqq54t3qalj5347laubtlr6mfbto1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
