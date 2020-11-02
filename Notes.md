@@ -718,3 +718,172 @@ class Home extends StatelessWidget {
 
 # Sign In & Register Forms:
 
+Create the register form with email and password
+
+- Delete the content of the **Container** *child* inside the sign_in.dart file. And replace it with a **Form** widget
+
+- The child of the widget are going to be a **Column** and inside we going to have different form fields.
+
+  - TextFormField: takes a property call *onChange*, set that equal to a function which takes in the value.
+
+  - For the password field, it is the same but with another property call *obscureText* set to true.
+
+```dart
+import 'package:brew_crew/services/auth.dart';
+import 'package:flutter/material.dart';
+
+class SignIn extends StatefulWidget {
+  @override
+  _SignInState createState() => _SignInState();
+}
+
+class _SignInState extends State<SignIn> {
+  final AuthService _auth = AuthService();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.brown[100],
+      appBar: AppBar(
+        backgroundColor: Colors.brown[400],
+        elevation: 0,
+        title: Text('Sign In Brew Crew'),
+      ),
+      body: Container(
+        padding: EdgeInsets.symmetric(vertical: 20, horizontal: 50),
+        child: Form(
+          child: Column(
+            children: <Widget>[
+              SizedBox(height: 20),
+              TextFormField(
+                onChanged: (val) {},
+              ),
+              SizedBox(height: 20),
+              TextFormField(
+                obscureText: true,
+                onChanged: (val) {},
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+```
+
+- Now it can add a button that has a async function on *onPressed* property, because this future are going to interact with the Firebase.
+
+```dart
+children: <Widget>[
+  SizedBox(height: 20),
+  TextFormField(
+    onChanged: (val) {},
+  ),
+  SizedBox(height: 20),
+  TextFormField(
+    obscureText: true,
+    onChanged: (val) {},
+  ),
+  SizedBox(height: 20),
+  RaisedButton(
+    color: Colors.pink[400],
+    child: Text(
+      'Sign In',
+      style: TextStyle(
+        color: Colors.white,
+      ),
+    ),
+    onPressed: () async {},
+  )
+],
+```
+
+- Now the form needs to keep track of what the user is typing in, and store this values of those fields inside a local state variable.
+
+- Create two peaces of state to store this two fields. So when the user start typing in the field, the state are update to the value of this field.
+
+```dart
+class _SignInState extends State<SignIn> {
+  final AuthService _auth = AuthService();
+
+  String email = '';
+  String password = '';
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.brown[100],
+      appBar: AppBar(
+        backgroundColor: Colors.brown[400],
+        elevation: 0,
+        title: Text('Sign In Brew Crew'),
+      ),
+      body: Container(
+        padding: EdgeInsets.symmetric(vertical: 20, horizontal: 50),
+        child: Form(
+          child: Column(
+            children: <Widget>[
+              SizedBox(height: 20),
+              TextFormField(
+                onChanged: (val) {
+                  setState(() {
+                    email = val;
+                  });
+                },
+              ),
+              SizedBox(height: 20),
+              TextFormField(
+                obscureText: true,
+                onChanged: (val) {
+                  setState(() {
+                    password = val;
+                  });
+                },
+              ),
+              SizedBox(height: 20),
+              RaisedButton(
+                color: Colors.pink[400],
+                child: Text(
+                  'Sign In',
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
+                onPressed: () async {
+                  print(email);
+                  print(password);
+                },
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+```
+
+Now that the sign in form are done, create the register form that are going to be something very similar.
+
+- Create new file call 'register.dart' inside the 'authentication' folder.
+  
+  - import material and create a **StatefulWidget** call Register.
+
+```dart
+import 'package:flutter/material.dart';
+
+class Register extends StatefulWidget {
+  @override
+  _RegisterState createState() => _RegisterState();
+}
+
+class _RegisterState extends State<Register> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      
+    );
+  }
+}
+```
