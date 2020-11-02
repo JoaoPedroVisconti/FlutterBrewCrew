@@ -508,4 +508,113 @@ onPressed: () async {
 Have to listen for when get the user back. To do this we are going to use a Stream. This occurs inside the **Wrapping** widget. (Show the **Authenticate** widget or the **Home**)
 
 - Set up a Stream inside the auth.dart file
+  
+  - We set up a Stream so that every time a user sign in or sings out, it get some kind of response down this Stream. (Some kind of event to tell: 'this is the user that signs in or null if the user signs out')
 
+  - So Map that in the custom user, so that TheUser object is what came back to our app. So it can use this object.
+
+```dart
+//Auth change user Stream
+Stream<TheUser> get user {
+  return _auth
+      .authStateChanges()
+      // .map((User user) => _userFromFirebaseUser(user))  // Is the same as
+      .map(_userFromFirebaseUser);
+}
+```
+
+
+# Provider Package:
+
+Now that the auth Stream setup, we need to use in the root of the application. In the top of the app the user state are track, so that inside the **Wrapper** widget the app make the decision of going to the Authentication screen or the Home screen.
+
+Now we need to provide the data that comes back from the Stream (a valid **TheUser** object or *null*) to the root widget (**MyApp**). This are going to be done with a package call Provider (Google recommended solution for State manage in Flutter).
+
+The way this package works is that, we can wrap a widget tree in a **Provider** supplying a Stream to that **Provider**, then whenever it get a new data in that Stream the **Provider** makes accessible to any of its descendent in the widget tree
+
+> Need to install the package: 'https://pub.dev/packages/provider/install'
+
+- In the main.dart file wrap the **MaterialApp** with the **Provider** (Don't forget to import it), to pass the information to the **Wrapper** widget where the data is used. The Provider that we are going to use is a **StreamProvider**.
+
+  - I going to be use a method of the **StreamProvider** call *value*. Inside it can be specify what stream it wants to listening.
+
+  - The stream that we are going to listen are inside the **AuthService** class and need to access the user stream on it. (Create an instance of this class and access the user stream on it) (Don't forget to import the auth.dart file to access the class)
+
+  - Now the **StreamProvider** is listening to the Stream and wrapping the **MaterialApp**. That means that everything inside this **MaterialApp*, every descendent have access to the data provide by the Stream.
+
+- One thing missing, it needs to specify what kind of data tha Stream a listening to, in this case **TheUser** type. (Has to import this as well)
+
+```dart
+import 'package:brew_crew/models/user.dart';
+import 'package:brew_crew/screens/wrapper.dart';
+import 'package:brew_crew/services/auth.dart';
+import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    return StreamProvider<TheUser>.value(
+      value: AuthService().user,
+      child: MaterialApp(
+        home: Wrapper(),
+      ),
+    );
+  }
+}
+```
+
+- Now inside the wrapper.dart file, use the Provider package accessing a method call *.of* and specifying the type of data it trying to receive, and store this information in a *final* variable.
+
+```dart
+import 'package:brew_crew/models/user.dart';
+import 'package:brew_crew/screens/authentication/authenticate.dart';
+import 'package:brew_crew/screens/home/home.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+class Wrapper extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final user = Provider.of<TheUser>(context);
+    print(user);
+
+    // Return Home or Authenticate widget
+    return Authenticate();
+  }
+}
+```
+
+
+# Signing Out:
+
+First of all it need a check in the wrapper.dart file to see if the user are login or not to see which screen to show.
+
+```dart
+class Wrapper extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final user = Provider.of<TheUser>(context);
+    // print(user);
+
+    // Return Home or Authenticate widget
+    if (user == null) {
+      return Authenticate();
+    } else {
+      return Home();
+    }
+  }
+}
+```
+
+Now the Home screen need a button to sign out and show the Authenticate screen again.
+
+- 
