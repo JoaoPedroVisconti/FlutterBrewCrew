@@ -617,4 +617,104 @@ class Wrapper extends StatelessWidget {
 
 Now the Home screen need a button to sign out and show the Authenticate screen again.
 
-- 
+- Lets return for the Home screen a **Scaffold** widget with an **AppBar** inside it.
+
+```dart
+import 'package:flutter/material.dart';
+
+class Home extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.brown[50],
+      appBar: AppBar(
+        backgroundColor: Colors.brown[400],
+        title: Text('Brew Crew'),
+        elevation: 0,
+      ),
+    );
+  }
+}
+```
+
+- Lets set a new property for the **AppBar** call *actions*
+
+  - *actions* expects a Widget list that represent little buttons that going to appear inside the app bar.
+
+```dart
+class Home extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.brown[50],
+      appBar: AppBar(
+        backgroundColor: Colors.brown[400],
+        title: Text('Brew Crew'),
+        elevation: 0,
+        actions: [
+          FlatButton.icon(
+            icon: Icon(Icons.person),
+            label: Text('Logout'),
+            onPressed: () {},
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+- The first widget is a **FlatButton.icon** to logout. The action of logout is done inside the *onPressed* property of the button.
+
+  - First we need to create this method of logout inside the auth.dart file.
+
+  - It is a async task so it going to return a *Future*. And inside has a Try Catch block.
+
+  - There is a method call *signOut()* inside the Firebase auth library
+
+```dart
+// Method to Sign Out
+Future signOut() async {
+  try {
+    return await _auth.signOut();
+  } catch (err) {
+    print(err.toString());
+    return null;
+  }
+}
+```
+
+- Now this method can be use inside the home.dart file in the button
+
+  - To access this method first need to create the instance of the **AuthService** class. (store in a final variable)
+
+```dart
+class Home extends StatelessWidget {
+  final AuthService _auth = AuthService();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.brown[50],
+      appBar: AppBar(
+        backgroundColor: Colors.brown[400],
+        title: Text('Brew Crew'),
+        elevation: 0,
+        actions: [
+          FlatButton.icon(
+            icon: Icon(Icons.person),
+            label: Text('Logout'),
+            onPressed: () async {
+              await _auth.signOut();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+
+# Sign In & Register Forms:
+
