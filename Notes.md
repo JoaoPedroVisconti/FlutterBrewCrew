@@ -964,3 +964,100 @@ class _RegisterState extends State<Register> {
 
 
 # Toggle Between Forms:
+
+Create a link to switch between the Resister and Sign In screens
+
+- Add the *action* property to the app bar, the list of widgets in this case is going to be one widget **FlatButton.icon**
+
+  - Do this for both Register and Sign In screen
+
+```dart
+appBar: AppBar(
+  backgroundColor: Colors.brown[400],
+  elevation: 0,
+  title: Text('Register to Brew Crew'),
+  actions: [
+    FlatButton.icon(
+      onPressed: () {},
+      icon: Icon(Icons.person),
+      label: Text('Sign In'),
+    )
+  ],
+),
+``` 
+
+- Need a piece of state inside the **Authenticate** widget to show one page or the other, a boolean. And do a check to see if it is true or false.
+
+  - Now lets create a function that toggle between true and false of this state.
+
+```dart
+import 'package:brew_crew/screens/authentication/register.dart';
+import 'package:brew_crew/screens/authentication/sign_in.dart';
+import 'package:flutter/material.dart';
+
+class Authenticate extends StatefulWidget {
+  @override
+  _AuthenticateState createState() => _AuthenticateState();
+}
+
+class _AuthenticateState extends State<Authenticate> {
+  bool showSignIn = true;
+
+  void toggleView() {
+    setState(() {
+      showSignIn = !showSignIn;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (showSignIn) {
+      return SignIn();
+    } else {
+      return Register();
+    }
+  }
+}
+```
+
+- Now we need to pass this function down as a parameter for the widgets that are been returned.
+
+  - Pass as a parameter call 'toggleView: '
+
+```dart
+@override
+Widget build(BuildContext context) {
+  if (showSignIn) {
+    return SignIn(toggleView: toggleView);
+  } else {
+    return Register(toggleView: toggleView);
+  }
+}
+```
+
+- Now inside the Widget **Register** and **SignIn** we need to create the constructor that going to receive the property.
+
+```dart
+class Register extends StatefulWidget {
+  final Function toggleView;
+
+  Register({this.toggleView});
+
+  @override
+  _RegisterState createState() => _RegisterState();
+}
+```
+> Do the same to the **SignIn** widget
+
+- To access this *toggleView* property inside the *onPressed* property of the button we call it from the *widget.toggleView()*, because we are accessing the widget it self on top, and the property of it.
+
+```dart
+FlatButton.icon(
+  onPressed: () {
+    widget.toggleView();
+  },
+  icon: Icon(Icons.person),
+  label: Text('Register'),
+)
+```
+
