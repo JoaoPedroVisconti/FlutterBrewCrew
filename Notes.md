@@ -1061,3 +1061,163 @@ FlatButton.icon(
 )
 ```
 
+# Register With Email & Password:
+
+Make the user register with an email and a password with the Firebase auth library, rather than Anonymously.
+
+- First need to check if the user are typing something in the form field. 
+
+  - Going to use some of the Flutters build in validation features
+
+  - First need to define a form key, that are going to be a GlobalKey of type FormState.
+
+    - This key is used to identify the form and the form are associate with the Global Form State key.
+
+    - This basically is keeping track of the form and the state of the form, and help to validate it.
+
+```dart
+import 'package:brew_crew/services/auth.dart';
+import 'package:flutter/material.dart';
+
+class Register extends StatefulWidget {
+  final Function toggleView;
+
+  Register({this.toggleView});
+
+  @override
+  _RegisterState createState() => _RegisterState();
+}
+
+class _RegisterState extends State<Register> {
+  final AuthService _auth = AuthService(); 
+  final _formKey = GlobalKey<FormState>(); ***
+
+  String email = '';
+  String password = '';
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.brown[100],
+      appBar: AppBar(
+        backgroundColor: Colors.brown[400],
+        elevation: 0,
+        title: Text('Register to Brew Crew'),
+        actions: [
+          FlatButton.icon(
+            onPressed: () {
+              widget.toggleView();
+            },
+            icon: Icon(Icons.person),
+            label: Text('Sign In'),
+          )
+        ],
+      ),
+      body: Container(
+        padding: EdgeInsets.symmetric(vertical: 20, horizontal: 50),
+        child: Form(
+          key: _formKey, ***
+          child: Column(
+            children: <Widget>[
+              SizedBox(height: 20),
+              TextFormField(
+                onChanged: (val) {
+                  setState(() {
+                    email = val;
+                  });
+                },
+              ),
+              SizedBox(height: 20),
+              TextFormField(
+                obscureText: true,
+                onChanged: (val) {
+                  setState(() {
+                    password = val;
+                  });
+                },
+              ),
+              SizedBox(height: 20),
+              RaisedButton(
+                color: Colors.pink[400],
+                child: Text(
+                  'Register',
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
+                onPressed: () async {
+                  print(email);
+                  print(password);
+                },
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+    ;
+  }
+}
+```
+
+- Inside the *onPressed* property now has to have a check, if the form is valid at the point that the user click the *Register* button
+
+  - The *_formKey* is used, accessing a user property call 'currentState' to access the current state of the form, and use a method call 'validate()' this validate the form based on it current state. Return True or False
+
+```dart
+onPressed: () async {
+  if (_formKey.currentState.validate()) {
+    print(email);
+    print(password);
+  }
+},
+```
+
+- For the validation method work, it use a different *validator* properties in the different forms.
+
+  - This *validator* property allow to run a function to see if the form is valid. This function takes the current value of the form and return a *null* if the form is valid and a String (Helper text) if the from is nt valid.
+
+```dart
+children: <Widget>[
+  SizedBox(height: 20),
+  TextFormField(
+    validator: (val) => val.isEmpty ? 'Enter an Email' : null,
+    onChanged: (val) {
+      setState(() {
+        email = val;
+      });
+    },
+  ),
+  SizedBox(height: 20),
+  TextFormField(
+    obscureText: true,
+    validator: (val) =>
+        val.length > 6 ? 'Enter a Password 6+ Chars Long' : null,
+    onChanged: (val) {
+      setState(() {
+        password = val;
+      });
+    },
+  ),
+  SizedBox(height: 20),
+  RaisedButton(
+    color: Colors.pink[400],
+    child: Text(
+      'Register',
+      style: TextStyle(
+        color: Colors.white,
+      ),
+    ),
+    onPressed: () async {
+      if (_formKey.currentState.validate()) {
+        print(email);
+        print(password);
+      }
+    },
+  )
+],
+``` 
+
+- With the validation working, the user can be register in the Firebase.
+
+- Has to create a method inside the auth.dart file to register the user with an email and a password
