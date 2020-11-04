@@ -1220,4 +1220,104 @@ children: <Widget>[
 
 - With the validation working, the user can be register in the Firebase.
 
-- Has to create a method inside the auth.dart file to register the user with an email and a password
+- Has to create a method inside the auth.dart file to register the user with an email and a password. This function returns a *Future* and it going to take two arguments (email and password as a string).
+
+- This function also are going to be *Async* 
+
+- And it has a Try Catch Block
+
+- The Try is going to make a request to Firebase, this is done due to the Firebase Auth instance.
+
+  - Has to *await* to this request to end and store it in a variable of type *Auth Result* call *result*.
+
+    - It uses a method call **createUserWithEmailAndPassword()** inside the instance of Firebase Auth, passing two arguments, the email and the password that are receive from the function.
+
+  - Now that the result is back and store, the Firebase User can be accessed from it and store in a variable call *user*
+
+    - This is going to be converted into the custom user *TheUser* that was created before.
+
+```dart
+// Method to Register Email and Password
+Future registerWithEmailAndPassword(String email, String password) async {
+  try {
+    UserCredential result = await _auth.createUserWithEmailAndPassword(
+        email: email, password: password);
+    User user = result.user;
+    return _userFromFirebaseUser(user);
+  } catch (err) {
+    print(err.toString());
+    return null;
+  }
+}
+```
+
+- Now this function can be used in the register.dart file, to register the information in the forms.
+
+  - When it is used in the register it get something back (null or user) so it need to be store in a *dynamic* variable that going to be equal to the instance accessing this new method that was created.
+
+  - This method accept and email and a password that currently are in the state of the class.
+
+```dart
+onPressed: () async {
+  if (_formKey.currentState.validate()) {
+    dynamic result = await _auth.registerWithEmailAndPassword(email, password);
+  }
+},
+```
+
+- If the result is *null* something give an error, so create a peace of state call *error* to grab this information
+
+```dart
+String email = '';
+String password = '';
+String error = '';
+```
+
+- Now need to check if the result is *null*, if it is update the *error* state.
+
+```dart
+onPressed: () async {
+  if (_formKey.currentState.validate()) {
+    dynamic result = await _auth.registerWithEmailAndPassword(
+        email, password);
+    if (result == null) {
+      setState(() {
+        error = 'Supply a valid Email';
+      });
+    }
+  }
+},
+```
+
+- Lets show this error bellow the button
+
+```dart
+RaisedButton(
+  color: Colors.pink[400],
+  child: Text(
+    'Register',
+    style: TextStyle(
+      color: Colors.white,
+    ),
+  ),
+  onPressed: () async {
+    if (_formKey.currentState.validate()) {
+      dynamic result = await _auth.registerWithEmailAndPassword(
+          email, password);
+      if (result == null) {
+        setState(() {
+          error = 'Supply a valid Email';
+        });
+      }
+    }
+  },
+),
+SizedBox(height: 12),
+Text(
+  error,
+  style: TextStyle(color: Colors.red, fontSize: 14),
+),
+```
+
+# Sign in With Email & Password:
+
