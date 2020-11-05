@@ -1480,4 +1480,100 @@ onPressed: () async {
 
 # Text Input Decoration:
 
+To decorate the form field inside the app, add a property call *decoration*
+  
+  - It is going to be equal to **InputDecoration** widget this has a feel properties.
+
+    - To use *fillColor* it is needed to enable *filled* property
+
+```dart
+TextFormField(
+  decoration: InputDecoration(
+    hintText: 'Email',
+    fillColor: Colors.white,
+    filled: true,
+    enabledBorder: OutlineInputBorder(
+      borderSide: BorderSide(
+        color: Colors.white,
+        width: 2,
+      ),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderSide: BorderSide(
+        color: Colors.pink,
+        width: 2,
+      ),
+    ),
+  ),
+  validator: (val) => val.isEmpty ? 'Enter an Email' : null,
+  onChanged: (val) {
+    setState(() {
+      email = val;
+    });
+  },
+),
+```
+
+- This is the decoration for the Email field. That can be copy to other fields. But when something change, has to comeback to each one and change it.
+
+- So define the *decoration* code as a constant and use in various parts.
+
+  - Create a new folder inside the lib folder call 'shared', this are going to hold any kind of shared code.
+
+  - Create new file call 'constants.dart', hold everything that are going to use in different parts of the app and don't change.
+
+  - import material
+
+  - Create a new constant call *textInputDecoration* and set it equal to the code that was written for decoration.
+
+> The *Colors* property was change for be using a *const* variable.
+> I didn't like the color so it was changed to white
+
+```dart
+import 'package:flutter/material.dart';
+
+const textInputDecoration = InputDecoration(
+  fillColor: Color(0xFFBCAAA4),
+  filled: true,
+  enabledBorder: OutlineInputBorder(
+    borderSide: BorderSide(
+      color: Color(0xFFBCAAA4),
+      width: 2,
+    ),
+  ),
+  focusedBorder: OutlineInputBorder(
+    borderSide: BorderSide(
+      color: Colors.pink,
+      width: 2,
+    ),
+  ),
+);
+```
+
+- The *hintText* property is remove, because it is going to be different for each part that we use. Instead, when we make the *decoration* property equals to this constant, it is passed together a method call *copyWith* and pass to the method the property that we want to add to the constant
+
+
+```dart
+TextFormField(
+  decoration: textInputDecoration.copyWith(hintText: 'Email'),
+  validator: (val) => val.isEmpty ? 'Enter an Email' : null,
+  onChanged: (val) {
+    setState(() {
+      email = val;
+    });
+  },
+),
+SizedBox(height: 20),
+TextFormField(
+  decoration: textInputDecoration.copyWith(hintText: 'Password'),
+  obscureText: true,
+  validator: (val) =>
+      val.length < 6 ? 'Enter a Password 6+ Chars Long' : null,
+  onChanged: (val) {
+    setState(() {
+      password = val;
+    });
+  },
+),
+```
 
