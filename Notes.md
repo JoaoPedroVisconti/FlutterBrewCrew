@@ -1724,3 +1724,26 @@ class _SignInState extends State<SignIn> {
 
 # Firestore Database Setup:
 
+Create a new FireStore Database in the Firebase website, remember to change the preference of the initial to be **Start in Test Mode**
+
+This package was already installed in the application, just use it.
+
+- Create a file inside the 'services' folder call database.dart. Fist thing is to import the firestore database
+
+- Create a call call **DatabaseService** inside is going to have all the different methods and properties that are going to be used to interact to the FireStore Database
+
+  - First thing TODO is a Collection Reference, a reference to a particular collection in the FireStore database
+    
+    - First collection reference are going to be to the brew collections
+
+    - This are going to be equal to a Firestore instance, and then can reference to a specific collection inside the Firestore database. (Don't need to create this collection inside the Firestore website, when this code runs, this collection are going to be created automatically).
+
+```dart
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class DatabaseService {
+  // Collection Reference
+  final CollectionReference brewCollection =
+      FirebaseFirestore.instance.collection('brew');
+}
+```
