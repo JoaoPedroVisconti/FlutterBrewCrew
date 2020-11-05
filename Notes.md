@@ -1577,3 +1577,150 @@ TextFormField(
 ),
 ```
 
+# Loading Widget:
+
+Load a loading screen while the request is made. 'https://pub.dev/packages/flutter_spinkit'
+  - Install the spinkit package
+
+- Create this widget inside the 'shared' folder because it going to be used in various widgets. Create loading.dart file.
+
+- It is going to be a **StatelessWidget**
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+
+class Loading extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.brown[100],
+      child: Center(
+        child: SpinKitChasingDots(
+          color: Colors.brown,
+          size: 50,
+        ),
+      ),
+    );
+  }
+}
+```
+
+- Need to create a property in state that it is going to be a boolean call *loading* with initial value of 'False'
+
+  - When the **loading** property is 'true' instead of showing the content inside the **Scaffold** widget, the **Loading** widget is showed.
+
+  - When we click the button, it is set it to 'true'. When the response come back and we get an error, we want to show the form page again, so set the *loading* equal to 'false'.
+
+```dart
+class _SignInState extends State<SignIn> {
+  final AuthService _auth = AuthService();
+  final _formKey = GlobalKey<FormState>();
+
+  String email = '';
+  String password = '';
+  String error = '';
+  bool loading = false; ***
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.brown[100],
+      appBar: AppBar(
+        backgroundColor: Colors.brown[400],
+        elevation: 0,
+        title: Text('Sign In Brew Crew'),
+        actions: [
+          FlatButton.icon(
+            onPressed: () {
+              widget.toggleView();
+            },
+            icon: Icon(Icons.person),
+            label: Text('Register'),
+          )
+        ],
+      ),
+      body: Container(
+        padding: EdgeInsets.symmetric(vertical: 20, horizontal: 50),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: <Widget>[
+              SizedBox(height: 20),
+              TextFormField(
+                decoration: textInputDecoration.copyWith(hintText: 'Email'),
+                validator: (val) => val.isEmpty ? 'Enter an Email' : null,
+                onChanged: (val) {
+                  setState(() {
+                    email = val;
+                  });
+                },
+              ),
+              SizedBox(height: 20),
+              TextFormField(
+                decoration: textInputDecoration.copyWith(hintText: 'Password'),
+                obscureText: true,
+                validator: (val) =>
+                    val.length < 6 ? 'Enter a Password 6+ Chars Long' : null,
+                onChanged: (val) {
+                  setState(() {
+                    password = val;
+                  });
+                },
+              ),
+              SizedBox(height: 20),
+              RaisedButton(
+                color: Colors.pink[400],
+                child: Text(
+                  'Sign In',
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
+                onPressed: () async {
+                  if (_formKey.currentState.validate()) {
+                    setState(() => loading = true); ***
+                    dynamic result =
+                        await _auth.signInWithEmailAndPassword(email, password);
+                    if (result == null) {
+                      setState(() {
+                        error = 'Could Not Sign In With Those Credentials';
+                        loading = false; ***
+                      });
+                    }
+                  }
+                },
+              ),
+              SizedBox(height: 12),
+              Text(
+                error,
+                style: TextStyle(color: Colors.red, fontSize: 14),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+```
+
+- Now use a ternary operator on the **build** method to return if the *loading* is true, the Loading screen or else the form
+
+  - Do the same thing to the **Register** widget
+
+```dart
+@override
+  Widget build(BuildContext context) {
+    return loading
+        ? Loading()
+        : Scaffold(
+        
+        // ---------------
+        
+        )
+```
+
+
+# Firestore Database Setup:
+
