@@ -1744,6 +1744,92 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class DatabaseService {
   // Collection Reference
   final CollectionReference brewCollection =
-      FirebaseFirestore.instance.collection('brew');
+      FirebaseFirestore.instance.collection('brews');
 }
 ```
+
+# Firestore User Records:
+
+Whenever the user register we have to communicate to firestore to add a new [document] into the {brews} collection which represents that user data and brews preferences. Going to start with a dummy data as 0 sugars and 0 strength, and the user are going to update later. Each of this documents are going to have different properties like, 'name', 'sugars' and 'strength' for example.
+
+Now it is needed to link the Firebase User to his particular Document in Firestore. When the user register, automatically the Firebase give him an unique ID, this are going to be used in the Firestore inside the Document of this particular user.
+
+- Create a function inside the **DatabaseReference** class to create a new document for the user that just register, inside the {brews} collection, using the reference to that collection that was created before.
+
+  - This function are going to be used twice, one when the user register, and when he update the data.
+
+  - This function receive three parameters, sugars, name and strength
+
+  - Is a Future returning type, with async characteristic because of the requests.
+
+```dart
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class DatabaseService {
+  // Collection Reference
+  final CollectionReference brewCollection =
+      FirebaseFirestore.instance.collection('brews');
+
+  Future updateUserData(String sugars, String name, int strength) async {}
+}
+```
+
+- Inside the function returns, awaiting for the response, get the {brews} collection and find a particular document with an specific ID. 
+
+```dart
+Future updateUserData(String sugars, String name, int strength) async {
+  return await brewCollection.doc(uid);
+}
+```
+
+- This user Id was not created yet, so we create the *uid* property, and inside a constructor we receive this parameter when the class is instantiated, as a Named Parameter
+
+```dart
+final String uid;
+
+DatabaseService({this.uid});
+```
+
+- This document if not existed yet, the Firestore are going to create it with that *uid* that was pass, linking with the particular User.
+
+- Now that the reference it is done, we set the data with a Map, that is going to represent the properties and the values inside the Firestore document.
+
+
+```dart
+Future updateUserData(String sugars, String name, int strength) async {
+  return await brewCollection.doc(uid).set({
+    'sugars': sugars,
+    'name': name,
+    'strength': strength,
+  });
+}
+```
+
+- Now this function need to be call when a new user register in the app.
+
+  - In the auth.dart file, where we register with an email and password. Onces the request is successful and get the user back, before return it, we want to create this document with the user id that came back.
+
+  - Need to await and create an instance of the **DatabaseService** passing in the uid.
+
+  - Use the *updateUserData()* method that was created, passing in the properties.
+
+```dart
+// Method to Register Email and Password
+Future registerWithEmailAndPassword(String email, String password) async {
+  try {
+    UserCredential result = await _auth.createUserWithEmailAndPassword(
+        email: email, password: password);
+    User user = result.user;
+
+    // Create a document in Firestore for the user with the uid
+    await DatabaseService(uid: user.uid)
+        .updateUserData('0', 'New Member', 100);
+
+    return _userFromFirebaseUser(user);
+  } catch (err) {
+    print(err.toString());
+    return null;
+  }
+}
+```
+
