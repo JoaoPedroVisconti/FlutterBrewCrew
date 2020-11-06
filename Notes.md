@@ -2369,3 +2369,286 @@ Widget build(BuildContext context) {
 
 
 # Bottom Sheets:
+
+The Home screen are going to have a button in the app bar that are going to pop-up some panel from the bottom of the screen. That panel has a form inside it that the user can update there data.
+
+So inside the home.dart file lets create this icon button in the top bar to be clicked and show the BottomSheet.
+
+- Create another action inside the *actions* property of the app bar
+
+  - The function inside the *onPressed* property inside the new button, are going to invoke another function call *_showSettingsPanel* (void function)
+
+```dart
+ appBar: AppBar(
+  backgroundColor: Colors.brown[400],
+  title: Text('Brew Crew'),
+  elevation: 0,
+  actions: [
+    FlatButton.icon(
+      icon: Icon(Icons.person),
+      label: Text('Logout'),
+      onPressed: () async {
+        await _auth.signOut();
+      },
+    ),
+    FlatButton.icon(
+      icon: Icon(Icons.settings),
+      label: Text('Settings'),
+      onPressed: () => _showSettingsPanel(),
+    )
+  ],
+),
+```
+
+- This function basically are going to invoke a build in function in Flutter call *showModalBottomSheet()*
+
+  - This takes two named parameters, the *context* and the *builder*.
+
+    - The builder is a function that actually builds the widget three or template that seats inside the bottom sheet it self.
+
+```dart
+class Home extends StatelessWidget {
+  final AuthService _auth = AuthService();
+
+  @override
+  Widget build(BuildContext context) {
+    void _showSettingsPanel() {
+      showModalBottomSheet(
+          context: context,
+          builder: (context) {
+            return Container(
+              padding: EdgeInsets.symmetric(vertical: 20, horizontal: 60),
+              child: Text('Bottom Sheet'),
+            );
+          });
+    }
+
+    return StreamProvider<List<Brew>>.value(
+      value: DatabaseService().brews,
+      child: Scaffold(
+        backgroundColor: Colors.brown[50],
+        appBar: AppBar(
+          backgroundColor: Colors.brown[400],
+          title: Text('Brew Crew'),
+          elevation: 0,
+          actions: [
+            FlatButton.icon(
+              icon: Icon(Icons.person),
+              label: Text('Logout'),
+              onPressed: () async {
+                await _auth.signOut();
+              },
+            ),
+            FlatButton.icon(
+              icon: Icon(Icons.settings),
+              label: Text('Settings'),
+              onPressed: () => _showSettingsPanel(),
+            )
+          ],
+        ),
+        body: BrewList(),
+      ),
+    );
+  }
+}
+```
+
+ # Drop-downs:
+
+ The bottom form are going to show a different widget, this are going to be created in a separate file.
+
+ - Create inside the home folder the file call 'settings_form.dart'.
+
+  - import as usual the material and the constants.dart file that has some style properties that we are going to use.
+
+- This are going to be a **StatefulWidget** because we need to keep track of what the user types in or select in the different form fields.
+
+  - This are going to be like the Form that we already used in the Sign In and Register.
+
+  - Don't forget to import the settings_form.dart inside the home file and inside the **Container** child place the **SettingsForm** widget
+
+  ```dart
+  import 'package:brew_crew/models/brew.dart';
+  import 'package:brew_crew/screens/home/brew_list.dart';
+  import 'package:brew_crew/screens/home/settings_form.dart';
+  import 'package:brew_crew/services/auth.dart';
+  import 'package:flutter/material.dart';
+  import 'package:brew_crew/services/database.dart';
+  import 'package:provider/provider.dart';
+
+  class Home extends StatelessWidget {
+    final AuthService _auth = AuthService();
+
+    @override
+    Widget build(BuildContext context) {
+      void _showSettingsPanel() {
+        showModalBottomSheet(
+            context: context,
+            builder: (context) {
+              return Container(
+                padding: EdgeInsets.symmetric(vertical: 20, horizontal: 60),
+                child: SettingsForm(),
+              );
+            });
+      }
+
+      return StreamProvider<List<Brew>>.value(
+        value: DatabaseService().brews,
+        child: Scaffold(
+          backgroundColor: Colors.brown[50],
+          appBar: AppBar(
+            backgroundColor: Colors.brown[400],
+            title: Text('Brew Crew'),
+            elevation: 0,
+            actions: [
+              FlatButton.icon(
+                icon: Icon(Icons.person),
+                label: Text('Logout'),
+                onPressed: () async {
+                  await _auth.signOut();
+                },
+              ),
+              FlatButton.icon(
+                icon: Icon(Icons.settings),
+                label: Text('Settings'),
+                onPressed: () => _showSettingsPanel(),
+              )
+            ],
+          ),
+          body: BrewList(),
+        ),
+      );
+    }
+  }
+  ```
+
+  - For the settings_form.dart file.
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:brew_crew/shared/constants.dart';
+
+class SettingsForm extends StatefulWidget {
+  @override
+  _SettingsFormState createState() => _SettingsFormState();
+}
+
+class _SettingsFormState extends State<SettingsForm> {
+  final _formKey = GlobalKey<FormState>();
+  final List<String> sugars = ['0', '1', '2', '3', '4', '5'];
+
+  // Form Values
+  String _currentName;
+  String _currentSugars;
+  int _currentStrength;
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: _formKey,
+      child: Column(
+        children: [
+          Text(
+            'Update Your Brew Preference',
+            style: TextStyle(fontSize: 18),
+          ),
+          SizedBox(height: 20),
+          TextFormField(
+            decoration: textInputDecoration,
+            validator: (val) => val.isEmpty ? 'Please enter a Name' : null,
+            onChanged: (val) => setState(() => _currentName = val),
+          ),
+          SizedBox(height: 20),
+          // TODO: Dropdown
+          // TODO: Slider
+          RaisedButton(
+            color: Colors.pink[400],
+            child: Text(
+              'Update',
+              style: TextStyle(color: Colors.white),
+            ),
+            onPressed: () async {
+              print(_currentName);
+              print(_currentSugars);
+              print(_currentStrength);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+- Now lest use a **DropdownButtonFormField** widget to create the dropdown.
+
+  - Inside this we need to specify a fill different things
+
+  1. item: need to be a list of **DropdownMenuItem** widgets. 
+    
+    - So we are going to map through the sugars and for each item we are going to return a widget **DropdownMenuItem** which has that particular value.
+
+```dart
+TextFormField(
+  decoration: textInputDecoration,
+  validator: (val) => val.isEmpty ? 'Please enter a Name' : null,
+  onChanged: (val) => setState(() => _currentName = val),
+),
+SizedBox(height: 20),
+DropdownButtonFormField(
+  items: sugars.map((sugar) {
+    return DropdownMenuItem();
+  }),
+)
+```
+
+- We need to specify to the **DropdownMenuItem** the *value* and *child* properties.
+
+```dart
+return Form(
+  key: _formKey,
+  child: Column(
+    children: [
+      Text(
+        'Update Your Brew Preference',
+        style: TextStyle(fontSize: 18),
+      ),
+      SizedBox(height: 20),
+      TextFormField(
+        decoration: textInputDecoration,
+        validator: (val) => val.isEmpty ? 'Please enter a Name' : null,
+        onChanged: (val) => setState(() => _currentName = val),
+      ),
+      SizedBox(height: 20),
+      DropdownButtonFormField(
+        decoration: textInputDecoration,
+        value: _currentSugars ?? '0',
+        items: sugars.map((sugar) {
+          return DropdownMenuItem(
+            value: sugar,
+            child: Text('$sugar Sugars'),
+          );
+        }).toList(),
+        onChanged: (val) => setState(() => _currentSugars = val),
+      ),
+      // TODO: Slider
+      RaisedButton(
+        color: Colors.pink[400],
+        child: Text(
+          'Update',
+          style: TextStyle(color: Colors.white),
+        ),
+        onPressed: () async {
+          print(_currentName);
+          print(_currentSugars);
+          print(_currentStrength);
+        },
+      ),
+    ],
+  ),
+);
+```
+
+
+# Sliders:
+
