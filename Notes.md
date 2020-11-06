@@ -1833,3 +1833,396 @@ Future registerWithEmailAndPassword(String email, String password) async {
 }
 ```
 
+
+# Firestore Streams:
+
+Now that has data inside the Firestore it can be used to show in the screen of the app.
+
+To do that is necessary to setup another Stream which notify of any changes on documents or any new documents in the database. 
+
+Any type of data that get back in the Stream is going to be a Snapshot of that particular collection {brews} at that moment in time. 
+
+That Snapshot basically is just going to be an Object which contains the current Documents and there values and properties inside the collection at that moment in time.
+
+Is our job to get that data from the Snapshot and organize in a way that we want in our app. 
+
+- The first thing is to setup the Stream to listen to the database inside the **Database** class.
+
+- Set up a Stream of type *QuerySnapshot*, this is a snapshot of the Firestore collection in time when something changes.
+  
+  - This is a *get* and it need to name it. 
+
+  - and inside it need to return a Stream.
+
+```dart
+class DatabaseService {
+  final String uid;
+
+  DatabaseService({this.uid});
+
+  // Collection Reference
+  final CollectionReference brewCollection =
+      FirebaseFirestore.instance.collection('brews');
+
+  Future updateUserData(String sugars, String name, int strength) async {
+    return await brewCollection.doc(uid).set({
+      'sugars': sugars,
+      'name': name,
+      'strength': strength,
+    });
+  }
+
+  // Get brews Stream:
+  Stream <QuerySnapshot> get brews {
+    return
+  }
+}
+```
+
+- Now the *brewCollection* Collection Reference that was created can be used to access the {brews} collection. And use a method build in the Firestore library call *snapshot()*
+
+```dart
+// Get brews Stream:
+Stream<QuerySnapshot> get brews {
+  return brewCollection.snapshots();
+}
+```
+
+- This now returns a Stream, and can be used in the home screen. 
+
+- Inside the home.dart file, we can use the provider package to listen to that Stream that was created inside this Home screen.
+
+  - Need to import the Provider package and the database.dart file.
+
+  - To use the *QuerySnapshot* type, the Firestore package has to be imported as well.
+
+```dart
+import 'package:brew_crew/services/database.dart';
+import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+```
+
+- Now the Provider can be used to wrap the **Scaffold**. The widget used to wrap is the **StreamProvider** and its type is *QuerySnapshot* that is the type that we get back down the Stream.
+
+  - We need to do '.value' to specify what value of this Stream going to be, and add a property call *value* that are going to be equal to the Stream that we create in the **DatabaseService** class. To access this Stream the instance of this class is needed
+
+```dart
+@override
+Widget build(BuildContext context) {
+  return StreamProvider <QuerySnapshot>.value(
+    value: DatabaseService().brews,
+    child: Scaffold(
+      backgroundColor: Colors.brown[50],
+      appBar: AppBar(
+        backgroundColor: Colors.brown[400],
+        title: Text('Brew Crew'),
+        elevation: 0,
+        actions: [
+          FlatButton.icon(
+            icon: Icon(Icons.person),
+            label: Text('Logout'),
+            onPressed: () async {
+              await _auth.signOut();
+            },
+          ),
+        ],
+      ),
+    ),
+  );
+}
+```
+
+- Now it is specified that we want this Stream 'brews' to be used and to wrap the rest of the widget three. Now in descendent widget the data can be access.
+
+- Create a *body* property for the **Scaffold** widget, and nest a new widget that are going to be created call **BrewList**.
+
+```dart
+import 'package:brew_crew/screens/home/brew_list.dart';
+
+//-----------------------
+
+@override
+Widget build(BuildContext context) {
+  return StreamProvider<QuerySnapshot>.value(
+    value: DatabaseService().brews,
+    child: Scaffold(
+      backgroundColor: Colors.brown[50],
+      appBar: AppBar(
+        backgroundColor: Colors.brown[400],
+        title: Text('Brew Crew'),
+        elevation: 0,
+        actions: [
+          FlatButton.icon(
+            icon: Icon(Icons.person),
+            label: Text('Logout'),
+            onPressed: () async {
+              await _auth.signOut();
+            },
+          ),
+        ],
+      ),
+      body: BrewList(),
+    ),
+  );
+}
+```
+
+- Create the brew_list.dart file inside the home folder. This are going to be responsible to cycling through the different brews.
+
+  - First import somethings
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+```
+
+- This are going to be a **StatefulWidget** because it iis going to change with time.
+
+```dart
+class BrewList extends StatefulWidget {
+  @override
+  _BrewListState createState() => _BrewListState();
+}
+
+class _BrewListState extends State<BrewList> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      
+    );
+  }
+}
+```
+
+- Inside the State object, inside the **build** function, we are going to try to access the data from the Stream.
+
+  - This are going to be store in a final variable call *brews*.
+
+  - Print this variable to see if its working and how it is looks
+
+```dart
+class _BrewListState extends State<BrewList> {
+  @override
+  Widget build(BuildContext context) {
+    final brews = Provider.of<QuerySnapshot>(context);
+
+    print(brews);
+
+    return Container();
+  }
+}
+```
+
+- This returns a QuerySnapshot and is not very useful, but what it can be done is to access the documents inside that Query
+
+```dart
+class _BrewListState extends State<BrewList> {
+  @override
+  Widget build(BuildContext context) {
+    final brews = Provider.of<QuerySnapshot>(context);
+
+    print(brews.docs);
+
+    return Container();
+  }
+}
+```
+
+- This prints to the console: '[Instance of 'QueryDocumentSnapshot']'
+
+- Now it can be cycle through the documents and print out the data inside the document
+
+
+```dart
+class _BrewListState extends State<BrewList> {
+  @override
+  Widget build(BuildContext context) {
+    final brews = Provider.of<QuerySnapshot>(context);
+
+    // print(brews.docs);
+
+    for (var doc in brews.docs){
+      print(doc.data());
+    }
+
+    return Container();
+  }
+}
+```
+
+
+#
+
+It takes a little manipulation to grab the information that it is needed, is better to map this Snapshot Stream into a Stream of custom objects which represent brews in the app, so it don't have to manipulate every time the data is needed.
+
+So instead of receiving Snapshot from the Stream, it will be better to receive a list of Brew objects
+
+So we need to create a Brew model, like the User model that was created before (TheUser). Then when we receive a QuerySnapshot down the Stream, we can convert that into a Brew object. 
+
+- In the model folder create a new file call brew.dart, then inside we create a class **Brew** and inside specify what property we want this Brew to have.
+
+```dart
+class Brew {
+  final String name;
+  final String sugars;
+  final int strength;
+}
+```
+
+- This need a constructor that are going to apply values to those properties.
+
+```Dart
+class Brew {
+  final String name;
+  final String sugars;
+  final int strength;
+
+  Brew({this.name, this.sugars, this.strength});
+}
+```
+
+- Now we need a way to convert the QuerySnapshot that we get back down the Stream to into a list of **Brew**
+
+  - We are going to do that inside the database.dart file, this is where we currently set the Stream. We are going to create a function to get a list of **Brew** from the Snapshot. (import the Brew model)
+
+  - This function are going to return a List type of **Brew**, call the function *_brewListFromSnapshot*
+
+  - This function are going to receive a QuerySnapshot and return a List of Brew. So when we receive a Snapshot, this is the original data, we are going to map through that data.
+
+    - We need to access the Documents in this Snapshot
+
+    - The *map()* method maps the documents into another iterable. So each time around it going to perform a function for each document, this function take the document, and inside return a single **Brew** for that particular document.
+
+  ```Dart
+  // Brew list from Snapshot
+  List<Brew> _brewListFromSnapshot(QuerySnapshot snapshot) {
+    return snapshot.docs.map((doc) {
+      return Brew();
+    });
+  }
+  ```
+
+  - The *map()* are cycling through the list of documents and we are referring to each document as 'doc'. And we can get the data from each document by using '.data()'
+
+  - Each property of the **Brew** are going to be equal to the data that are being receive from the map
+
+  - This is essentially a Map, in a Map we can access the key and values of a single property by passing the property Key
+
+    - To cover the case of the user don't have a name, lets give an empty string instead (to not receive null in this property)
+
+      - ?? - Mean, if this property doesn't exist
+
+```dart
+// Brew list from Snapshot
+List<Brew> _brewListFromSnapshot(QuerySnapshot snapshot) {
+  return snapshot.docs.map((doc) {
+    return Brew(
+      name: doc.data()['name'] ?? '',
+      sugars: doc.data()['sugars'] ?? '0',
+      strength: doc.data()['strength'] ?? 0,
+    );
+  });
+}
+```
+
+- This return a iterable, and not a List. So we need to covert it to work when we output the data in the UI.
+
+```dart
+// Brew list from Snapshot
+List<Brew> _brewListFromSnapshot(QuerySnapshot snapshot) {
+  return snapshot.docs.map((doc) {
+    return Brew(
+      name: doc.data()['name'] ?? '',
+      sugars: doc.data()['sugars'] ?? '0',
+      strength: doc.data()['strength'] ?? 0,
+    );
+  }).toList();
+}
+```
+
+- Now we have the **_brewListFromSnapshot** function and we need to call this every time we get a Snapshot in the get that we did. 
+
+- What we can do is map this in to a new Stream. Instead of returning the QuerySnapshot, we now are going to return a List of Brew, and map the get into the function that we created.
+
+```dart
+// Brew list from Snapshot
+List<Brew> _brewListFromSnapshot(QuerySnapshot snapshot) {
+  return snapshot.docs.map((doc) {
+    return Brew(
+      name: doc.data()['name'] ?? '',
+      sugars: doc.data()['sugars'] ?? '0',
+      strength: doc.data()['strength'] ?? 0,
+    );
+  }).toList();
+}
+
+// Get brews Stream:
+Stream<List<Brew>> get brews {
+  return brewCollection.snapshots().map(_brewListFromSnapshot);
+}
+```
+
+- Now where we are listening to this data (home.dart file) we are now listening to a list of Brew coming in, instead of QuerySnapshots.
+
+  - Need to change the type in the StreamProvider and import the brew.dart file.
+
+```dart
+@override
+  Widget build(BuildContext context) {
+    return StreamProvider<List<Brew>>.value(
+      value: DatabaseService().brews,
+      child: Scaffold(
+        
+        // ------------------------
+
+      )
+```
+
+- Now we are using this StreamProvider saying down the Stream, every time it has a change in the database we are going to receive a list of Brew
+
+- Now in the **BrewList** widget we are no longer listen to QuerySnapshot anymore, we are getting a LIst of Brew
+
+```dart
+import 'package:brew_crew/models/brew.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+class BrewList extends StatefulWidget {
+  @override
+  _BrewListState createState() => _BrewListState();
+}
+
+class _BrewListState extends State<BrewList> {
+  @override
+  Widget build(BuildContext context) {
+    final brews = Provider.of<List<Brew>>(context);
+
+    return Container();
+  }
+}
+```
+
+- Now going to use a For Each method to print ou each one.
+
+```dart
+class _BrewListState extends State<BrewList> {
+  @override
+  Widget build(BuildContext context) {
+    final brews = Provider.of<List<Brew>>(context);
+
+    brews.forEach((element) {
+      print('Brew List');
+      print(element.name);
+      print(element.sugars);
+      print(element.strength);
+    });
+
+    return Container();
+  }
+}
+```
+
+
+# Listing Brew Data:
+
