@@ -2226,3 +2226,146 @@ class _BrewListState extends State<BrewList> {
 
 # Listing Brew Data:
 
+To display the list of Brews, we are going to create a ListView builder that allow us to create a function and return a specific template or widget three for each item in the list of the Brew List
+
+```dart
+class _BrewListState extends State<BrewList> {
+  @override
+  Widget build(BuildContext context) {
+    final brews = Provider.of<List<Brew>>(context);
+
+    // brews.forEach((element) {
+    //   print('Brew List');
+    //   print(element.name);
+    //   print(element.sugars);
+    //   print(element.strength);
+    // });
+
+    return ListView.builder();
+  }
+}
+```
+
+- Inside this ListView builder we need to specify a couple of things.
+  
+  - The first is the Item Count that specify how many items we want to cycle through. This is equal to the length of the List.
+
+  - The second is the item Builder, this is the function itself that are going to return some kind of template or widget three for each item inside that list.
+
+    - This function takes the *context* and the *index* of whatever item we're currently iterating.
+
+    - This are going to return a template (widget) that we are going to create in a separate file
+
+    - But we are also going to pass through a property to this Widget and that is going to be the individual brew that we want to create this three around. That are going to be *brew[index]* 
+
+```dart
+class _BrewListState extends State<BrewList> {
+@override
+Widget build(BuildContext context) {
+  final brews = Provider.of<List<Brew>>(context);
+
+  // brews.forEach((element) {
+  //   print('Brew List');
+  //   print(element.name);
+  //   print(element.sugars);
+  //   print(element.strength);
+  // });
+
+  return ListView.builder(
+    itemCount: brews.length,
+    itemBuilder: (context, index) {
+      return BrewTile(brew: brews[index]);
+    },
+  );
+}
+```
+
+- Lest create a new file inside the home folder call brew_tile.dart, and import the things that we are going to use.
+
+- This are going to be a **StatelessWidget** call BrewTile
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:brew_crew/models/brew.dart';
+
+class BrewTile extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+```
+
+- We are going to create a final Brew property (this is defined inside the brew.dart file) call *brew*. And set this property inside the constructor (We are passing this property inside the Brew List)
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:brew_crew/models/brew.dart';
+
+class BrewTile extends StatelessWidget {
+  final Brew brew;
+
+  BrewTile({this.brew});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+```
+
+- Now we are getting this individual brew inside, now we can return a widget three using that individual brew.
+
+- We are going to use a **Card** widget with a **ListTile** widget inside 'https://api.flutter.dev/flutter/material/ListTile-class.html'
+
+```dart
+return Padding(
+  padding: EdgeInsets.only(top: 8),
+  child: Card(
+    margin: EdgeInsets.fromLTRB(20, 6, 20, 0),
+    child: ListTile(),
+  ),
+);
+```
+
+- We are going to specify a *leading* property to be an **CirceAvatar** with a background color accordantly to the strength of the brew.
+
+```dart
+return Padding(
+  padding: EdgeInsets.only(top: 8),
+  child: Card(
+    margin: EdgeInsets.fromLTRB(20, 6, 20, 0),
+    child: ListTile(
+      leading: CircleAvatar(
+        radius: 25,
+        backgroundColor: Colors.brown[brew.strength],
+      ),
+    ),
+  ),
+);
+```
+
+- The next property is the *title*, that is equal to the *name* property of the brew.
+
+```dart
+@override
+Widget build(BuildContext context) {
+  return Padding(
+    padding: EdgeInsets.only(top: 8),
+    child: Card(
+      margin: EdgeInsets.fromLTRB(20, 6, 20, 0),
+      child: ListTile(
+        leading: CircleAvatar(
+          radius: 25,
+          backgroundColor: Colors.brown[brew.strength],
+        ),
+        title: Text(brew.name),
+        subtitle: Text('Takes ${brew.sugars} sugar(s)'),
+      ),
+    ),
+  );
+}
+```
+
+
+# Bottom Sheets:
