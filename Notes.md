@@ -2652,3 +2652,43 @@ return Form(
 
 # Sliders:
 
+Add a Slider widget to control the strength the brew
+
+- Call the Slider inside the **Column** widget
+
+  - This takes a fill different properties, a maximum and minimum number, the number of divisions, and a onChange property that update the state for the *_currentStrength* property.
+
+    - The *val* property that we get back of the function, is a double, so we need to round it to an integer.
+
+  - We need to set a value to initialize the slider, that are going to be either the current value of the user or 100 to initialize.
+
+    - The properties in the Slider widget came in double, so we need to convert to it.
+
+  - The inactive and active colors properties are for the color of the bar. We can use the value that we obtain from the strength.
+
+```dart
+SizedBox(height: 20),
+Slider(
+  value: (_currentStrength ?? 100).toDouble(),
+  activeColor: Colors.brown[_currentStrength ?? 100],
+  inactiveColor: Colors.brown[_currentStrength ?? 100],
+  min: 100,
+  max: 900,
+  divisions: 8,
+  onChanged: (val) => setState(() => _currentStrength = val.round()),
+),
+```
+
+
+# User Data Model:
+
+We want to populate the form with user information
+
+For this we need to set a Stream to listen to the particular user Document. 
+
+When the user login or register, it has a ID associated with it. Now we want to setup a Stream to the Firestore Document with that particular ID and get the data. And when is changes, are update in the form as well.
+
+We are going to setup this Stream in the database.dart file.
+
+And we also going to create a user data model. Every time we get some kind of document snapshot back down on our Stream we are going to take that data and put in a user data object.
+
