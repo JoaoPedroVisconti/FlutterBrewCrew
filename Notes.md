@@ -2692,3 +2692,62 @@ We are going to setup this Stream in the database.dart file.
 
 And we also going to create a user data model. Every time we get some kind of document snapshot back down on our Stream we are going to take that data and put in a user data object.
 
+- First lets create a Stream for the document getting back down the snapshot of this document.
+
+```dart
+// Get user Document Stream:
+Stream<DocumentSnapshot> get userData {
+  return brewCollection.doc(uid).snapshots();
+}
+```
+
+- We want to map this data to something that is not a **DocumentSnapshot**, but for this we have to create the user data model. This model is going to be create inside the user.dart file.
+
+```dart
+class TheUser {
+  final String uid;
+
+  TheUser({this.uid});
+}
+
+class UserData {
+  final String uid;
+  final String name;
+  final String sugars;
+  final int strength;
+
+  UserData({this.uid, this.name, this.sugars, this.strength});
+}
+```
+
+- Now we need a method to take a document snapshot and turn into a *UserData* object based on the user data model. This is going to be created at database.dart file.
+
+```Dart
+// UserData from Snapshot
+UserData _userDataFromSnapshot(DocumentSnapshot snapshot) {
+  return UserData(
+    uid: uid,
+    name: snapshot.data()['name'],
+    sugars: snapshot.data()['sugars'],
+    strength: snapshot.data()['strength'],
+  );
+}
+```
+
+- Now we need to use this method inside the Stream that was created for listen to the document.
+
+```dart
+// UserData from Snapshot
+UserData _userDataFromSnapshot(DocumentSnapshot snapshot) {
+  return UserData(
+    uid: uid,
+    name: snapshot.data()['name'],
+    sugars: snapshot.data()['sugars'],
+    strength: snapshot.data()['strength'],
+  );
+}
+```
+
+
+# Using a Stream Builder:
+
