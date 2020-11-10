@@ -2751,3 +2751,197 @@ UserData _userDataFromSnapshot(DocumentSnapshot snapshot) {
 
 # Using a Stream Builder:
 
+Demonstrate a different way to listen to a Stream and use it data. (We already know the Provider package)
+
+Use the Stream Builder when we need to access this data for one single widget.
+
+- First thing we need to do is to wrap the Form inside the settings_form.dart into a StreamBuilder.
+
+  - This widget need the type of data that are going to be back from down the Stream, in this case is *UserData*
+
+  - Inside we need to pass the Stream that we wnat to use, the one inside the **DatabaseServices** class.
+
+```dart
+@override
+  Widget build(BuildContext context) {
+    return StreamBuilder<UserData>(
+        stream: DatabaseService(),
+        builder: (context, snapshot) {
+          return Form(
+          
+            // ----------------
+          
+          )
+
+        }
+
+      // ------------
+
+```
+
+- We need to pass the *uid* property to the **DatabaseService** class. TO have access to this property we need to use the provider package as we have done in the **Wrapper**  class.
+
+```dart
+@override
+  Widget build(BuildContext context) {
+    final user = Provider.of<TheUser>(context);
+
+    return StreamBuilder<UserData>(
+        stream: DatabaseService(),
+        builder: (context, snapshot) {
+          return Form(
+
+            // -------------
+
+```
+
+- Now we have access to the *uid* of the user that is current login. And passing it to the class we can now access the Stream inside this class. (*userData*)
+
+```dart
+@override
+  Widget build(BuildContext context) {
+    final user = Provider.of<TheUser>(context);
+
+    return StreamBuilder<UserData>(
+        stream: DatabaseService(uid: user.uid).userData,
+        builder: (context, snapshot) {
+          return Form(
+
+            // -------------
+
+```
+
+- Now we can use the data that come back from the Stream, the *snapshot* argument used in the builder method of the **StreamBuilder** is not the same as the Snapshot that we get ack from the Firestore. This is only the data that the Stream is sending down.
+
+  - We have to make a check about it, to see if we have data or not. If we have, we return the **Form** widget three.
+
+
+```dart
+return StreamBuilder<UserData>(
+  stream: DatabaseService(uid: user.uid).userData,
+  builder: (context, snapshot) {
+    if (snapshot.hasData) {
+      return Form(
+        key: _formKey,
+        child: Column(
+          children: [
+            Text(
+              'Update Your Brew Preference',
+              style: TextStyle(fontSize: 18),
+            ),
+            SizedBox(height: 20),
+            TextFormField(
+              decoration: textInputDecoration,
+              validator: (val) =>
+                  val.isEmpty ? 'Please enter a Name' : null,
+              onChanged: (val) => setState(() => _currentName = val),
+            ),
+            SizedBox(height: 20),
+            DropdownButtonFormField(
+              decoration: textInputDecoration,
+              // TODO: Value not updating in the field when we return to it
+              value: _currentSugars ?? '0',
+              items: sugars.map((sugar) {
+                return DropdownMenuItem(
+                  value: sugar,
+                  child: Text('$sugar Sugars'),
+                );
+              }).toList(),
+              onChanged: (val) => setState(() => _currentSugars = val),
+            ),
+            SizedBox(height: 20),
+            Slider(
+              value: (_currentStrength ?? 100).toDouble(),
+              activeColor: Colors.brown[_currentStrength ?? 100],
+              inactiveColor: Colors.brown[_currentStrength ?? 100],
+              min: 100,
+              max: 900,
+              divisions: 8,
+              onChanged: (val) =>
+                  setState(() => _currentStrength = val.round()),
+            ),
+            RaisedButton(
+              color: Colors.pink[400],
+              child: Text(
+                'Update',
+                style: TextStyle(color: Colors.white),
+              ),
+              onPressed: () async {
+                print(_currentName);
+                print(_currentSugars);
+                print(_currentStrength);
+              },
+            ),
+          ],
+        ),
+      );
+    } else {}
+```
+
+- Now we have access to the data, we can store this inside a variable. The data that we have access to is of type **UserData**.
+
+
+```dart
+if (snapshot.hasData) {
+            UserData userData = snapshot.data;
+
+            return Form(
+```
+
+- Now we can reference this inside our form.
+
+```dart
+children: [
+  Text(
+    'Update Your Brew Preference',
+    style: TextStyle(fontSize: 18),
+  ),
+  SizedBox(height: 20),
+  TextFormField(
+    initialValue: userData.name,  ***
+    decoration: textInputDecoration,
+    validator: (val) =>
+        val.isEmpty ? 'Please enter a Name' : null,
+    onChanged: (val) => setState(() => _currentName = val),
+  ),
+  SizedBox(height: 20),
+  DropdownButtonFormField(
+    decoration: textInputDecoration,
+    // TODO: Value not updating in the field when we return to it
+    value: _currentSugars ?? userData.sugars, ***
+    items: sugars.map((sugar) {
+      return DropdownMenuItem(
+        value: sugar,
+        child: Text('$sugar Sugars'),
+      );
+    }).toList(),
+    onChanged: (val) => setState(() => _currentSugars = val),
+  ),
+  SizedBox(height: 20),
+  Slider(
+    value: (_currentStrength ?? 100).toDouble(),
+    activeColor: Colors.brown[_currentStrength ?? 100],
+    inactiveColor: Colors.brown[_currentStrength ?? 100],
+    min: 100,
+    max: 900,
+    divisions: 8,
+    onChanged: (val) =>
+        setState(() => _currentStrength = val.round()),
+  ),
+  RaisedButton(
+    color: Colors.pink[400],
+    child: Text(
+      'Update',
+      style: TextStyle(color: Colors.white),
+    ),
+    onPressed: () async {
+      print(_currentName);
+      print(_currentSugars);
+      print(_currentStrength);
+    },
+  ),
+],
+),
+```
+
+- While we don't have any data, is going to show the **Loading** widget that we create before.
