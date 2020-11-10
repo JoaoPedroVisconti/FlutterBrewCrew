@@ -2945,3 +2945,278 @@ children: [
 ```
 
 - While we don't have any data, is going to show the **Loading** widget that we create before.
+
+
+
+# Updating User Data:
+
+First lets correct a little error that we are getting er reload the app. 
+
+- Inside the brew_list.dart, where we are getting a list of brews, if those brews aren't loaded yet, where we are cycling through this brews it is not going to work. 
+
+- Lets provide a fallback option that are going to return a empty array while waiting for the brew list.
+
+```dart
+import 'package:brew_crew/models/brew.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import 'brew_tile.dart';
+
+class BrewList extends StatefulWidget {
+  @override
+  _BrewListState createState() => _BrewListState();
+}
+
+class _BrewListState extends State<BrewList> {
+  @override
+  Widget build(BuildContext context) {
+    final brews = Provider.of<List<Brew>>(context) ?? [];
+
+    // brews.forEach((element) {
+    //   print('Brew List');
+    //   print(element.name);
+    //   print(element.sugars);
+    //   print(element.strength);
+    // });
+
+    return ListView.builder(
+      itemCount: brews.length,
+      itemBuilder: (context, index) {
+        return BrewTile(brew: brews[index]);
+      },
+    );
+  }
+}
+```
+
+
+We are currently tracking the values in the form, but we need to update those values inside the Firestore Document.
+
+To do that we can use a method that we already create in the past inside the **DatabaseService** class call *updateUserData*. What we need to do is call this method inside the function of the *onPressed* property of the Update button.
+
+First we have a problem with the initial values for the *_current* properties. They are initially *null*. We have to make sure that they have a value before update to the firestore, if they don't have a value we are going to provide a fallback value.
+
+We want to be the current value we populate the form with.
+
+- First let perform a validation using the *_formKey* as was done before.
+
+```dart
+onPressed: () async {
+  if (_formKey.currentState.validate())
+},
+```
+
+- Now we can access the method *updateData* inside the **DatabaseServices** class, passing the *uid* property that we take from the Provider and update the values accordingly to the named constructor.
+
+  - All this has to *await* to perform.
+
+  - We provide the value that we are tracking or if is not exist, the default value.
+
+  - After that we can close the form.
+
+```dart
+import 'package:brew_crew/models/user.dart';
+import 'package:brew_crew/services/database.dart';
+import 'package:brew_crew/shared/loading.dart';
+import 'package:flutter/material.dart';
+import 'package:brew_crew/shared/constants.dart';
+import 'package:provider/provider.dart';
+
+class SettingsForm extends StatefulWidget {
+  @override
+  _SettingsFormState createState() => _SettingsFormState();
+}
+
+class _SettingsFormState extends State<SettingsForm> {
+  final _formKey = GlobalKey<FormState>();
+  final List<String> sugars = ['0', '1', '2', '3', '4', '5'];
+
+  // Form Values
+  String _currentName;
+  String _currentSugars;
+  int _currentStrength;
+
+  @override
+  Widget build(BuildContext context) {
+    final user = Provider.of<TheUser>(context);
+
+    return StreamBuilder<UserData>(
+        stream: DatabaseService(uid: user.uid).userData,
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            UserData userData = snapshot.data;
+
+            return Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  Text(
+                    'Update Your Brew Preference',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  SizedBox(height: 20),
+                  TextFormField(
+                    initialValue: userData.name,
+                    decoration: textInputDecoration,
+                    validator: (val) =>
+                        val.isEmpty ? 'Please enter a Name' : null,
+                    onChanged: (val) => setState(() => _currentName = val),
+                  ),
+                  SizedBox(height: 20),
+                  DropdownButtonFormField(
+                    decoration: textInputDecoration,
+                    // TODO: Value not updating in the field when we return to it
+                    value: _currentSugars ?? userData.sugars,
+                    items: sugars.map((sugar) {
+                      return DropdownMenuItem(
+                        value: sugar,
+                        child: Text('$sugar Sugars'),
+                      );
+                    }).toList(),
+                    onChanged: (val) => setState(() => _currentSugars = val),
+                  ),
+                  SizedBox(height: 20),
+                  Slider(
+                    value: (_currentStrength ?? userData.strength).toDouble(),
+                    activeColor:
+                        Colors.brown[_currentStrength ?? userData.strength],
+                    inactiveColor:
+                        Colors.brown[_currentStrength ?? userData.strength],
+                    min: 100,
+                    max: 900,
+                    divisions: 8,
+                    onChanged: (val) =>
+                        setState(() => _currentStrength = val.round()),
+                  ),
+                  RaisedButton(
+                    color: Colors.pink[400],
+                    child: Text(
+                      'Update',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onPressed: () async {
+                      if (_formKey.currentState.validate()) {
+                        await DatabaseService(uid: user.uid).updateUserData(
+                          _currentSugars ?? userData.sugars,
+                          _currentName ?? userData.name,
+                          _currentStrength ?? userData.strength,
+                        );
+
+                        Navigator.pop(context);
+                      }
+                    },
+                  ),
+                ],
+              ),
+            );
+          } else {
+            return Loading();
+          }
+        });
+  }
+}
+```
+
+
+# Finishing Touches:
+
+Add some images to the background and the strength of the coffee
+
+- In home.dart, lets wrap the body of the **Scaffold** with a **Container** to apply the background image.
+
+```dart
+import 'package:brew_crew/models/brew.dart';
+import 'package:brew_crew/screens/home/brew_list.dart';
+import 'package:brew_crew/screens/home/settings_form.dart';
+import 'package:brew_crew/services/auth.dart';
+import 'package:flutter/material.dart';
+import 'package:brew_crew/services/database.dart';
+import 'package:provider/provider.dart';
+
+class Home extends StatelessWidget {
+  final AuthService _auth = AuthService();
+
+  @override
+  Widget build(BuildContext context) {
+    void _showSettingsPanel() {
+      showModalBottomSheet(
+          context: context,
+          builder: (context) {
+            return Container(
+              padding: EdgeInsets.symmetric(vertical: 20, horizontal: 60),
+              child: SettingsForm(),
+            );
+          });
+    }
+
+    return StreamProvider<List<Brew>>.value(
+      value: DatabaseService().brews,
+      child: Scaffold(
+        backgroundColor: Colors.brown[50],
+        appBar: AppBar(
+          backgroundColor: Colors.brown[400],
+          title: Text('Brew Crew'),
+          elevation: 0,
+          actions: [
+            FlatButton.icon(
+              icon: Icon(Icons.person),
+              label: Text('Logout'),
+              onPressed: () async {
+                await _auth.signOut();
+              },
+            ),
+            FlatButton.icon(
+              icon: Icon(Icons.settings),
+              label: Text('Settings'),
+              onPressed: () => _showSettingsPanel(),
+            )
+          ],
+        ),
+        body: Container(
+          decoration: BoxDecoration(
+              image: DecorationImage(
+            image: AssetImage('assets/coffee_bg.png'),
+            fit: BoxFit.cover,
+          )),
+          child: BrewList(),
+        ),
+      ),
+    );
+  }
+}
+```
+
+- Now in the file brew_tile.dart, where we make the cards. 
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:brew_crew/models/brew.dart';
+
+class BrewTile extends StatelessWidget {
+  final Brew brew;
+
+  BrewTile({this.brew});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(top: 8),
+      child: Card(
+        margin: EdgeInsets.fromLTRB(20, 6, 20, 0),
+        child: ListTile(
+          leading: CircleAvatar(
+            radius: 25,
+            backgroundColor: Colors.brown[brew.strength],
+            backgroundImage: AssetImage('assets/coffee_icon.png'),
+          ),
+          title: Text(brew.name),
+          subtitle: Text('Takes ${brew.sugars} sugar(s)'),
+        ),
+      ),
+    );
+  }
+}
+```
+
+FINISH!!!!
